@@ -6,19 +6,50 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"log"
 
+	"github.com/aidarkhanov/nanoid"
+	database "github.com/xdars/web-crud/db"
 	"github.com/xdars/web-crud/graph/model"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	db, err := database.GetDatabase()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer db.Close()
+	id := nanoid.New()
+	db.CreateUser(id, input.FirstName, input.LastName)
+
+	return &model.User{ID: id, FirstName: input.FirstName, LastName: input.LastName}, nil
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	db, err := database.GetDatabase()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer db.Close()
+	user := new(model.User)
+	db.GetUser(id, user)
+	return user, nil
+}
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	db, err := database.GetDatabase()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	var users []*model.User
+	db.GetUsers(&users)
+	return users, nil
 }
 
 // Mutation returns MutationResolver implementation.
